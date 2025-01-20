@@ -3,7 +3,7 @@ import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 import Modal from "./Modal";
 
 const WorldMap = () => {
-  const geoPath = process.env.PUBLIC_URL + "/geo.json";
+  const geoPath = "/geo.json";
   const [isOpen, setIsOpen] = useState(false);
   const [clickedCountries, setClickedCountries] = useState([]);
   const [inputCountry, setInputCountry] = useState("");
