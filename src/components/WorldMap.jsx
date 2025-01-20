@@ -1,91 +1,129 @@
-import React from "react";
+import React, { useState } from "react";
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 import Modal from "./Modal";
 
 const WorldMap = () => {
   const geoPath = "/geo.json";
-  const [isOpen, setIsOpen] = React.useState(false);
-  const [inputCountry, setInputCountry] = React.useState("");
-  const [selectedCountry, setSelectedCountry] = React.useState("");
-  const [isMatch, setIsMatch] = React.useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [clickedCountries, setClickedCountries] = useState([]);
+  const [inputCountry, setInputCountry] = useState("");
+  const [selectedCountry, setSelectedCountry] = useState("");
+  const [resulttext, setResulttext] = useState("");
+  const [score, setScore] = useState(0);
 
-  const handleInputCountry = (e) => {
-    setInputCountry(e.target.value);
+  const resetAllState = () => {
+    setInputCountry("");
+    setSelectedCountry("");
+    setResulttext("");
   };
 
   const handleCountryClick = (geo) => {
-    setIsOpen(true);
+    resetAllState();
     const countryStringify = JSON.stringify(geo);
     const countryClicked = JSON.parse(countryStringify).properties.name;
-    console.log(countryClicked);
+    if (clickedCountries[countryClicked] === "#28a745") return; // If color is green, prevent click
+
     setSelectedCountry(countryClicked);
+    setIsOpen(true);
   };
 
-  const submitAnswer = () => {
-    setIsMatch(selectedCountry.toLowerCase === inputCountry.toLowerCase);
-    setTimeout(() => {
-      resetAllState();
-    }, 2000);
-  };
+  const handleSubmit = (e) => {
+    e.preventDefault();
 
-  const resetAllState = () => {
+    const matchResult =
+      inputCountry.trim().localeCompare(selectedCountry.trim(), undefined, {
+        sensitivity: "accent",
+      }) === 0;
+
+    if (matchResult) {
+      setResulttext("🎉 Correct Answer!");
+      setScore(score + 1);
+    } else {
+      setResulttext("❌ Wrong Answer!");
+    }
+
+    setClickedCountries((prevClickedCountries) => ({
+      ...prevClickedCountries,
+      [selectedCountry]: matchResult ? "#28a745" : "#FF6347", // Green if match , Red if no match
+    }));
+
     setIsOpen(false);
-    setInputCountry("");
-    setSelectedCountry("");
-    setIsMatch(false);
   };
 
   return (
     <>
+      {/* Modal component to display the country name */}
       <Modal
         isOpen={isOpen}
         data={selectedCountry}
         onClose={(isOpen) => {
           setIsOpen(false);
-          setIsMatch(false);
         }}
       >
-        {isMatch ? (
-          <p>Right Answer!!!</p>
-        ) : (
-          <>
-            <h1>Name the Country!</h1>
-            <p>
-              Enter a country and discover its rights. Let’s see what you know!
-            </p>
+        <div>
+          <h3>Name the Country!</h3>
+          <p>
+            Enter a country and discover its rights. Let’s see what you know!
+          </p>
+          <form onSubmit={handleSubmit} className="form-container">
             <input
               type="text"
-              placeholder="Type something"
+              placeholder="Enter your answer"
               value={inputCountry}
-              onChange={handleInputCountry}
+              onChange={(e) => setInputCountry(e.target.value)}
             />
-            <button onClick={submitAnswer}>Submit</button>
-          </>
-        )}
+            <button className="form-btn" type="submit">
+              Submit
+            </button>
+          </form>
+        </div>
       </Modal>
 
-      <ComposableMap style={{ width: "100%", height: "auto" }}>
-        <Geographies geography={geoPath}>
-          {({ geographies, error }) => {
-            if (error) {
-              console.error("Error loading GeoJSON:", error);
-              return <div>Error loading map data.</div>;
-            }
-            return geographies.map((geo) => (
-              <Geography
-                key={geo.rsmKey}
-                geography={geo}
-                style={{
-                  default: { fill: "#D6D6DA", outline: "none" },
-                  hover: { fill: "#F53", outline: "none" },
-                  pressed: { fill: "#E42", outline: "none" },
-                }}
-                onClick={() => handleCountryClick(geo)}
-              />
-            ));
-          }}
-        </Geographies>
-      </ComposableMap>
+      <header className="top-section">
+        <div className="left-aligned">WORLD MAP GAME</div>
+        <div className="center-aligned ">Score: {score}</div>
+
+        <div className="right-aligned">{resulttext}</div>
+      </header>
+
+      <main className="map-container">
+        <ComposableMap style={{ width: "100%", height: "auto" }}>
+          <Geographies geography={geoPath}>
+            {({ geographies, error }) => {
+              if (error) {
+                console.error("Error loading GeoJSON:", error);
+                return <div>Error loading map data.</div>;
+              }
+
+              return geographies.map((geo) => {
+                const countryName = geo.properties.name;
+                const countryColor = clickedCountries[countryName] || "#D6D6DA"; // Default color or clicked color
+                return (
+                  <Geography
+                    key={geo.rsmKey}
+                    geography={geo}
+                    style={{
+                      default: {
+                        fill: countryColor,
+                        outline: "none",
+                      },
+                      hover: {
+                        fill: "#F53",
+                        outline: "none",
+                      },
+                      pressed: {
+                        fill: "#E42",
+                        outline: "none",
+                      },
+                    }}
+                    onClick={() => handleCountryClick(geo)}
+                  />
+                );
+              });
+            }}
+          </Geographies>
+        </ComposableMap>
+      </main>
     </>
   );
 };
