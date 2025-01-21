@@ -94,12 +94,13 @@ const WorldMap = () => {
 
       <header className="top-section">
         <div className="left-aligned">WORLD MAP GAME</div>
-        <div className="center-aligned ">Score: {score}</div>
+        <div className="center-aligned">Score: {score}</div>
 
         <div className="right-aligned">{resulttext}</div>
       </header>
 
       <main className="map-container">
+        <div><h4 className="center-aligned">World Explorer: Name & Score Your Knowledge!</h4></div>
         <ComposableMap style={{ width: "100%", height: "auto" }}>
           <Geographies geography={geoData}>
             {({ geographies, error }) => {
