@@ -1,15 +1,28 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 import Modal from "./Modal";
 
 const WorldMap = () => {
-  const geoPath = "/geo.json";
   const [isOpen, setIsOpen] = useState(false);
+  const [geoData, setGeoData] = useState(null);
   const [clickedCountries, setClickedCountries] = useState([]);
   const [inputCountry, setInputCountry] = useState("");
   const [selectedCountry, setSelectedCountry] = useState("");
   const [resulttext, setResulttext] = useState("");
   const [score, setScore] = useState(0);
+
+  useEffect(() => {
+    // Fetch GeoJSON data when the component mounts
+    fetch("https://anj-oo.github.io/worldmap/geo.json")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((data) => setGeoData(data))
+      .catch((error) => console.error("Error fetching GeoJSON:", error));
+  }, []);
 
   const resetAllState = () => {
     setInputCountry("");
@@ -88,7 +101,7 @@ const WorldMap = () => {
 
       <main className="map-container">
         <ComposableMap style={{ width: "100%", height: "auto" }}>
-          <Geographies geography={geoPath}>
+          <Geographies geography={geoData}>
             {({ geographies, error }) => {
               if (error) {
                 console.error("Error loading GeoJSON:", error);
