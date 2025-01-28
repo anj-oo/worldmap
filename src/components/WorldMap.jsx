@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 import Modal from "./Modal";
+import Header from "./Header";
 
 const WorldMap = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -24,16 +25,15 @@ const WorldMap = () => {
       .catch((error) => console.error("Error fetching GeoJSON:", error));
   }, []);
 
-  const resetAllState = () => {
+  const resetAllState = useCallback(() => {
     setInputCountry("");
     setSelectedCountry("");
     setResulttext("");
-  };
+  }, []);
 
   const handleCountryClick = (geo) => {
     resetAllState();
-    const countryStringify = JSON.stringify(geo);
-    const countryClicked = JSON.parse(countryStringify).properties.name;
+    const countryClicked = geo.properties.name;
     if (clickedCountries[countryClicked] === "#28a745") return; // If color is green, prevent click
 
     setSelectedCountry(countryClicked);
@@ -41,6 +41,7 @@ const WorldMap = () => {
   };
 
   const handleSubmit = (e) => {
+    console.log("handleSubmit");
     e.preventDefault();
 
     const matchResult =
@@ -92,15 +93,14 @@ const WorldMap = () => {
         </div>
       </Modal>
 
-      <header className="top-section">
-        <div className="left-aligned">WORLD MAP GAME</div>
-        <div className="center-aligned">Score: {score}</div>
-
-        <div className="right-aligned">{resulttext}</div>
-      </header>
+      <Header score={score} resulttext={resulttext} />
 
       <main className="map-container">
-        <div><h4 className="center-aligned">World Explorer: Name & Score Your Knowledge!</h4></div>
+        <div>
+          <h4 className="center-aligned">
+            World Explorer: Name & Score Your Knowledge!
+          </h4>
+        </div>
         <ComposableMap style={{ width: "100%", height: "auto" }}>
           <Geographies geography={geoData}>
             {({ geographies, error }) => {
